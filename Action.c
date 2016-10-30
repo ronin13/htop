@@ -158,7 +158,8 @@ static bool expandCollapse(Panel* panel) {
 Htop_Reaction Action_setSortKey(Settings* settings, ProcessField sortKey) {
    settings->sortKey = sortKey;
    settings->direction = 1;
-   settings->treeView = false;
+   if (!settings->treeSort)
+	settings->treeView = false;
    return HTOP_REFRESH | HTOP_SAVE_SETTINGS | HTOP_UPDATE_PANELHDR | HTOP_KEEP_FOLLOWING;
 }
 
@@ -222,6 +223,11 @@ static Htop_Reaction actionToggleTreeView(State* st) {
    if (st->settings->treeView) st->settings->direction = 1;
    ProcessList_expandTree(st->pl);
    return HTOP_REFRESH | HTOP_SAVE_SETTINGS | HTOP_KEEP_FOLLOWING | HTOP_REDRAW_BAR | HTOP_UPDATE_PANELHDR;
+}
+
+static Htop_Reaction actionToggleTreeSort(State* st) {
+   st->settings->treeSort = !st->settings->treeSort;
+   return HTOP_REFRESH | HTOP_SAVE_SETTINGS;
 }
 
 static Htop_Reaction actionIncFilter(State* st) {
@@ -387,6 +393,7 @@ static struct { const char* key; const char* info; } helpLeft[] = {
    { .key = "   F3 /: ", .info = "incremental name search" },
    { .key = "   F4 \\: ",.info = "incremental name filtering" },
    { .key = "   F5 t: ", .info = "tree view" },
+   { .key = "      L: ", .info = "tree sort" },
    { .key = "      p: ", .info = "toggle program path" },
    { .key = "      u: ", .info = "show processes of a single user" },
    { .key = "      H: ", .info = "hide/show user process threads" },
@@ -530,6 +537,7 @@ void Action_setBindings(Htop_Action* keys) {
    keys['K'] = actionToggleKernelThreads;
    keys['p'] = actionToggleProgramPath;
    keys['t'] = actionToggleTreeView;
+   keys['L'] = actionToggleTreeSort;
    keys[KEY_F(5)] = actionToggleTreeView;
    keys[KEY_F(4)] = actionIncFilter;
    keys['\\'] = actionIncFilter;
